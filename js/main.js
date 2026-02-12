@@ -1,20 +1,26 @@
 Vue.component('create-task', {
     template: `
-    <form>
-        <p>Создание заметки</p>
-      <input id="title" type="text" v-model="title" placeholder="Название задачи">
-        <div class="create-task">
-            <div class="create-task__form">
-                <p>Пункты списка</p>
-              <button type="button"
-                      v-if="subtasks.length < 5"
-                      @click="subtasks.push({ title: '', completed: false })">
-                    Добавить
-                </button>
+      <form class="task-form" @submit.prevent="createTask">
+        <div class="task-form__inner">
+          <div class="task-name">
+            <p>Создание заметки</p>
+            <input class="task-form__input" id="title" type="text" v-model="title" placeholder="Название задачи">
             </div>
-          <input v-for="(subtask, i) in subtasks" v-model="subtask.title" type="text" placeholder="Название пункта">
-        </div>
-        <button>Создать заметку</button>
+          <div class="create-task">
+            <div class="create-task__form">
+              <p>Пункты списка</p>
+              <button
+                  class="create-task__btn"
+                  type="button"
+                  v-if="subtasks.length < 5"
+                  @click="subtasks.push({ title: '', completed: false })"
+              >
+                Добавить
+              </button>
+            </div>
+            <input class="task-form__input" v-for="(subtask, i) in subtasks" v-model="subtask.title" type="text" placeholder="Название пункта"></div>
+          <button class="create-task__btn" :disabled="!canCreate">Создать заметку</button>
+          </div>
     </form>
     `,
     props: {
@@ -106,9 +112,9 @@ let app = new Vue({
 
 
     watch: {
-        columns: {
+        tasks: {
             handler(value) {
-                localStorage.columns = JSON.stringify(value)
+                localStorage.tasks = JSON.stringify(value)
             },
             deep: true
         }

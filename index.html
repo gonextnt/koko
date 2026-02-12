@@ -21,12 +21,23 @@
                     <article class="task" v-for="(task, j) in column.tasks" :key="`${i}-${task.id}`">
                         <p class="task-title">{{ task.title }}</p>
                         <div class="task-body">
-                            <label class="task-point" v-for="subTask in task.tasks">
-                                <input type="checkbox">
-                                {{ subTask }}
+                            <label class="task-point" v-for="(subtask, k) in task.subtasks" :key="`${i} - ${task.id} - ${k}`">
+                                <input
+                                        type="checkbox"
+                                        :id="`${i} - ${j} - ${k}`"
+                                        v-model="subtask.completed"
+                                        @change="onCompleteSubtask"
+                                        :disabled="columnDisabled(i) || subtask.completed"
+                                >
+                                {{ subtask.title }}
                             </label>
                         </div>
                     </article>
+                    <create-task
+                            unique-id="uniqueId"
+                            v-if="i === 0 && column.tasks.length < 3"
+                            @create-task="(task) => tasks.push(task)"
+                    ></create-task>
                 </div>
                 <button class="add-task" @click="addTask(i)" v-if="i === 0" :disabled="column.tasks.length >= 3">Добавить заметку</button>
     </div>
