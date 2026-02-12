@@ -13,8 +13,22 @@
 <body>
 <div id="app">
     <div class="container">
-        <section class="columns">
-            <div class="column">
+        <h1 class="title">Заметки</h1>
+        <section class="board">
+            <div class="board-column" v-for="(column, i) in columns" :key="i">
+                <h2 class="column-title">{{ column.title }}</h2>
+                <div class="task-wrapper">
+                    <article class="task" v-for="(task, j) in column.tasks" :key="`${i}-${task.id}`">
+                        <p class="task-title">{{ task.title }}</p>
+                        <div class="task-body">
+                            <label class="task-point" v-for="subTask in task.tasks">
+                                <input type="checkbox">
+                                {{ subTask }}
+                            </label>
+                        </div>
+                    </article>
+                </div>
+                <button class="add-task" @click="addTask(i)" v-if="i === 0" :disabled="column.tasks.length >= 3">Добавить заметку</button>
     </div>
 </div>
 </body>
