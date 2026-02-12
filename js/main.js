@@ -91,14 +91,14 @@ let app = new Vue({
             return 100 * (subtasks.reduce((acc, subtasks) => acc + +subtasks.completed, 0) / (subtasks.length || 1))
         },
 
-        onCompletedPercentage(subtasks) {
+        onCompleteSubtask(task) {
             if (this.completedPercentage(task.subtasks) === 100) {
                 task.finishedAt = new Date()
             }
         },
         columnDisabled(columnIndex) {
             switch (columnIndex) {
-                case 0: return this.column[1].tasks.length >= 5
+                case 0: return this.columns[1].tasks.length >= 5
                 case 2: return columnIndex === 2
             }
         }
