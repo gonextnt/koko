@@ -18,8 +18,17 @@ Vue.component('create-task', {
                 Добавить
               </button>
             </div>
-            <div v-for="(subtask, i) in subtasks" :key="i">
+            <div v-for="(subtask, i) in subtasks" :key="i" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
               <input class="task-form__input" v-model="subtask.title" type="text" placeholder="Название пункта">
+              <button 
+                  v-if="subtasks.length > 3" 
+                  type="button" 
+                  @click="removeSubtask(i)"
+                  class="create-task__btn"
+                  style="padding: 4px 10px; font-size: 14px;"
+              >
+                Удалить
+              </button>
             </div>
           </div>
           <div v-if="errors.length" class="errors">
@@ -52,6 +61,9 @@ Vue.component('create-task', {
     methods: {
         addSubtask() {
             this.subtasks.push({ title: '', completed: false })
+        },
+        removeSubtask(index) {
+            this.subtasks.splice(index, 1)
         },
         createTask() {
             this.errors = []
@@ -100,11 +112,11 @@ let app = new Vue({
             return [
                 {
                     title: 'Новые',
-                    tasks: this.filteredColumn(this.tasks, 0, 49)
+                    tasks: this.filteredColumn(this.tasks, 0, 50)
                 },
                 {
                     title: 'В процессе',
-                    tasks: this.filteredColumn(this.tasks, 50, 99)
+                    tasks: this.filteredColumn(this.tasks, 51, 99)
                 },
                 {
                     title: 'Завершенные',
