@@ -5,7 +5,7 @@ Vue.component('create-task', {
           <div class="task-name">
             <p>Создание заметки</p>
             <input class="task-form__input" id="title" type="text" v-model="title" placeholder="Название задачи">
-            </div>
+          </div>
           <div class="create-task">
             <div class="create-task__form">
               <p>Пункты списка</p>
@@ -13,15 +13,21 @@ Vue.component('create-task', {
                   class="create-task__btn"
                   type="button"
                   v-if="subtasks.length < 5"
-                  @click="subtasks.push({ title: '', completed: false })"
+                  @click="addSubtask"
               >
                 Добавить
               </button>
             </div>
-            <input class="task-form__input" v-for="(subtask, i) in subtasks" v-model="subtask.title" type="text" placeholder="Название пункта"></div>
-          <button class="create-task__btn" :disabled="!canCreate">Создать заметку</button>
+            <div v-for="(subtask, i) in subtasks" :key="i">
+              <input class="task-form__input" v-model="subtask.title" type="text" placeholder="Название пункта">
+            </div>
           </div>
-    </form>
+          <div v-if="errors.length" class="errors">
+            <p v-for="(error, index) in errors" :key="index">{{ error }}</p>
+          </div>
+          <button class="create-task__btn" :disabled="!canCreate">Создать заметку</button>
+        </div>
+      </form>
     `,
     props: {
         uniqueId: {
@@ -32,20 +38,49 @@ Vue.component('create-task', {
     data(){
         return {
             title: '',
-            subtasks: []
+            subtasks: [],
+            errors: []
         }
     },
     computed: {
         canCreate() {
-            return this.title.length && this.subtasks.length >= 3 && this.subtasks.length <= 5
+            if (!this.title.trim()) return false
+            if (this.subtasks.length < 3 || this.subtasks.length > 5) return false
+            return this.subtasks.every(subtask => subtask.title.trim().length > 0)
         }
     },
     methods: {
+        addSubtask() {
+            this.subtasks.push({ title: '', completed: false })
+        },
         createTask() {
+            this.errors = []
+
+            if (!this.title.trim()) {
+                this.errors.push("Название задачи обязательно")
+                return
+            }
+
+            if (this.subtasks.length < 3) {
+                this.errors.push("Нужно добавить минимум 3 пункта")
+                return
+            }
+
+            if (this.subtasks.length > 5) {
+                this.errors.push("Максимум 5 пунктов")
+                return
+            }
+
+            const emptySubtasks = this.subtasks.filter(subtask => !subtask.title.trim())
+            if (emptySubtasks.length > 0) {
+                this.errors.push("Все пункты должны быть заполнены")
+                return
+            }
+
             this.$emit('create-task', {
                 id: this.uniqueId,
                 title: this.title,
-                subtasks: this.subtasks,
+                subtasks: this.subtasks.map(s => ({ ...s })),
                 finishedAt: null
             })
 
@@ -57,23 +92,19 @@ Vue.component('create-task', {
 
 let app = new Vue({
     el: '#app',
-
-    data() {
-        return {
-            tasks: []
-        }
+    data: {
+        tasks: []
     },
-
     computed: {
         columns() {
             return [
                 {
                     title: 'Новые',
-                    tasks: this.filteredColumn(this.tasks, 0, 50)
+                    tasks: this.filteredColumn(this.tasks, 0, 49)
                 },
                 {
                     title: 'В процессе',
-                    tasks: this.filteredColumn(this.tasks, 51, 99)
+                    tasks: this.filteredColumn(this.tasks, 50, 99)
                 },
                 {
                     title: 'Завершенные',
@@ -92,40 +123,33 @@ let app = new Vue({
                 return percentage >= min && percentage <= max
             })
         },
-
         completedPercentage(subtasks) {
-            return 100 * (subtasks.reduce((acc, subtasks) => acc + +subtasks.completed, 0) / (subtasks.length || 1))
+            return 100 * (subtasks.reduce((acc, subtask) => acc + +subtask.completed, 0) / (subtasks.length || 1))
         },
-
         onCompleteSubtask(task) {
             if (this.completedPercentage(task.subtasks) === 100) {
                 task.finishedAt = new Date()
             }
         },
         columnDisabled(columnIndex) {
-            switch (columnIndex) {
-                case 0: return this.columns[1].tasks.length >= 5
-                case 2: return columnIndex === 2
-            }
-        }
+            if (columnIndex === 0) return this.columns[1].tasks.length >= 5
+            if (columnIndex === 2) return true
+            return false
+        },
+        addTask() {}
     },
-
-
     watch: {
         tasks: {
             handler(value) {
-                localStorage.tasks = JSON.stringify(value)
+                localStorage.setItem('tasks', JSON.stringify(value))
             },
             deep: true
         }
     },
-
     mounted() {
-        this.columns = JSON.parse(localStorage.columns ?? JSON.stringify(
-            {
-                columnOne: [],
-                columnTwo: [],
-                columnThree: [],
-            }))
+        const savedTasks = localStorage.getItem('tasks')
+        if (savedTasks) {
+            this.tasks = JSON.parse(savedTasks)
+        }
     }
 })
